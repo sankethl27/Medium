@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-// ✅ Correct import for the class type
 import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import { sign } from 'hono/jwt';
@@ -22,14 +21,14 @@ authRouter.post('/signup', async (c) => {
       return c.json({ error: 'Missing required fields.' });
     }
 
-     const prisma = new PrismaClient({
-      datasourceUrl: c.env.DATABASE_URL,
-    }).$extends(withAccelerate());
+   const prisma = new PrismaClient({
+      accelerateUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate())
 
     const user = await prisma.user.create({
       data: {
         email: body.email,
-        password: body.password // ⚠️ should be hashed in production
+        password: body.password
       }
     });
 
@@ -61,8 +60,9 @@ authRouter.post('/signin', async (c) => {
       return c.json({ error: 'Missing required fields.' });
     }
 
-    const prisma = createPrismaClient(c.env.ACCELERATE_URL);
-
+  const prisma = new PrismaClient({
+    accelerateUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate())
     const user = await prisma.user.findUnique({
       where: { email: body.email }
     });
